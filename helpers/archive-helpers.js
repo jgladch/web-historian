@@ -1,5 +1,7 @@
 var fs = require('fs');
 var path = require('path');
+var request = require('request');
+var http = require('http-request');
 var _ = require('underscore');
 
 /*
@@ -27,10 +29,17 @@ exports.initialize = function(pathsObj){
 
 var sitesInList = [];
 
+var saveSiteList = function() {
+  var stringified = JSON.stringify(sitesInList);
+  fs.writeFile(exports.paths.list, stringified, function(err){
+    if (err) {return;}
+  });
+};
+
 exports.readListOfUrls = function(){
   fs.readFile(exports.paths.list, function(err, data) {
     if(err) {console.log("readListOfUrls is broken!! data: "+data)};
-    sitesInList = data.toString().split("\n");
+    sitesInList = JSON.parse(data.toString());
     console.log("current sites listed: ");
     console.log(sitesInList);
   });
@@ -44,10 +53,50 @@ exports.isUrlInList = function(site){
 
 exports.addUrlToList = function(url){
   sitesInList.push(url);
+  saveSiteList();
 };
 
-exports.isURLArchived = function(){
+exports.isURLArchived = function(url){
+  fs.open(exports.paths.archivedSites+'/'+url, function(err, fd){
+    if (err) {
+      return false;
+    } else {
+      return true;
+    }
+  });
 };
 
-exports.downloadUrls = function(){
+exports.downloadUrl = function(url) {
+  console.log("downloadurl: "+url);
+  http.get(url, function (err, res) {
+    if (!err) {
+      console.log(res.buffer.toString());
+      var html = res.buffer.toString();
+      fs.writeFile(exports.paths.archivedSites+'/'+url, html, function(err){
+        if (err) {console.log("Error writing archive file");}
+      });
+    } else {
+      console.log("Error in htmlfetcher!");
+      console.log(error);
+    }
+  });
+};
+
+exports.downloadUrls = function() {
+  for (var i = 0; i < sitesInList.length; i++) {
+    sitesInList[i] = url;
+    console.log("downloadurl: "+url);
+    http.get(url, function (err, res) {
+      if (!err) {
+        console.log(res.buffer.toString());
+        var html = res.buffer.toString();
+        fs.writeFile(exports.paths.archivedSites+'/'+url, html, function(err){
+          if (err) {console.log("Error writing archive file");}
+        });
+      } else {
+        console.log("Error in htmlfetcher!");
+        console.log(error);
+      }
+    });
+  }
 };

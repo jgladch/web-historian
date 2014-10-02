@@ -16,12 +16,9 @@ var serveFile = function(req, res, path, status) {
   });
 };
 
-var redirect = function(req, res, path) {
-  headers = helpers.headers;
-  // headers['Location'] = path;
-  res.writeHead(302, headers);
-  console.log("Path in redirect: "+path);
-  res.end(path);
+var send404 = function(req, res) {
+  res.writeHead(404, helpers.headers);
+  res.end();
 };
 
 var actions = {
@@ -36,6 +33,8 @@ var actions = {
         var path = archive.paths.archivedSites+req.url;
         console.log(path);
         serveFile(req, res, path);
+      } else { //If site isn't archived, send 404
+        send404(req, res);
       }
     }
   },
@@ -50,21 +49,15 @@ var actions = {
     req.on('end', function(){
       //Parse the POST request for just the website name
       url = body.slice(4);
-      path = archive.paths.archivedSites+'/'+url;
       if (archive.isUrlInList(url)) {
+        path = archive.paths.archivedSites+'/'+url;
         serveFile(req, res, path);
       } else {
         archive.addUrlToList(url);
         path = archive.paths.siteAssets+'/loading.html';
-        console.log("path in POST parser: "+path);
-        //This part isn't working now
         serveFile(req, res, path, 302);
       }
     });
-
-    // statusCode = 201;
-    // res.writeHead(statusCode, headers);
-    // res.end();
   },
 
   'OPTIONS': function(req, res){
