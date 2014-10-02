@@ -5,6 +5,7 @@ var helpers = require("./http-helpers");
 var fs = require('fs');
 // require more modules/folders here!
 
+archive.readListOfUrls();
 
 exports.handleRequest = function (req, res) {
 
@@ -27,13 +28,21 @@ exports.handleRequest = function (req, res) {
       });
     } else { //If req url isn't index
 
-      urlSite = req.url.slice(1)
-      archive.readListOfUrls(urlSite, archive.isUrlInList);
-      // archive.isUrlInList();
+      urlName = req.url.slice(1)
 
-      console.log("request url sliced: "+req.url.slice(1));
-
-
+      if (archive.isUrlInList(urlName)) {
+        console.log("archived is true");
+        fs.readFile(archive.paths.archivedSites+req.url, function(err, file){
+          if (err) {
+            console.log("ERROR! File is: "+file);
+          }
+          console.log("Trying to grab the archived file!");
+          console.log(file);
+          statusCode = 200;
+          res.writeHead(statusCode, helpers.headers);
+          res.end(file);
+        });
+      }
     }
     
   } else { //If req method isn't GET

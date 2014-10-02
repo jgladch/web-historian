@@ -27,23 +27,19 @@ exports.initialize = function(pathsObj){
 
 var sitesInList = [];
 
-exports.readListOfUrls = function(site, callback){
-  console.log("Running readListOfUrls");
-
+exports.readListOfUrls = function(){
   fs.readFile(exports.paths.list, function(err, data) {
     if(err) {console.log("readListOfUrls is broken!! data: "+data)};
     sitesInList = data.toString().split("\n");
     console.log("current sites listed: ");
     console.log(sitesInList);
-    callback(site);
   });
 };
 
 exports.isUrlInList = function(site){
-  console.log("In isUrlInList");
-
-  console.log(_.contains(sitesInList, site)); 
-
+  var result = _.contains(sitesInList, site); 
+  console.log("Is URL in list result: "+result);
+  return result;
 };
 
 exports.addUrlToList = function(){
