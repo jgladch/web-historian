@@ -15,33 +15,46 @@ var serveFile = function(req, res, path) {
   });
 }
 
-exports.handleRequest = function (req, res) {
+var actions = {
 
-  console.log("Serving request type " + req.method + " for url " + req.url);
-
-  var statusCode = 404;
-
-  if (req.method === 'GET') {
-    
+  'GET': function(req, res){
     if (req.url === '/index.html' || req.url === '/') {
-      
       var path = archive.paths.siteAssets+'/index.html'
       serveFile(req, res, path);
-
     } else { //If req.url isn't index
-
       site = req.url.slice(1)
-
       if (archive.isUrlInList(site)) { //If the site is already archived
-
         var path = archive.paths.archivedSites+req.url;
         serveFile(req, res, path);
-
       }
     }
-    
-  } else { //If req method isn't GET
+  },
 
+  'POST': function(req, res){
+    var body = '';
+
+    req.on('data', function(data){
+      body += data;
+    });
+
+    req.on('end', function(){
+      console.log(body.slice(4));
+    });
+
+    statusCode = 201;
+    res.writeHead(statusCode, headers);
+    res.end();
+  },
+
+  'OPTIONS': function(req, res){
+    
   }
+};
+
+exports.handleRequest = function (req, res) {
+  console.log("Serving request type " + req.method + " for url " + req.url);
+
+  var action = actions[req.method];
+  action(req, res);
 
 };
