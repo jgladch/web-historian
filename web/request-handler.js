@@ -7,13 +7,22 @@ var fs = require('fs');
 
 archive.readListOfUrls();
 
-var serveFile = function(req, res, path) {
+var serveFile = function(req, res, path, status) {
+  var status = status || 200;
   fs.readFile(path, function(err, data){
-    if (err) {console.log("Error in serveFile")}
-    res.writeHead(200, helpers.headers);
+    if (err) {console.log(data); console.log("Error in serveFile")}
+    res.writeHead(status, helpers.headers);
     res.end(data);
   });
-}
+};
+
+var redirect = function(req, res, path) {
+  headers = helpers.headers;
+  // headers['Location'] = path;
+  res.writeHead(302, headers);
+  console.log("Path in redirect: "+path);
+  res.end(path);
+};
 
 var actions = {
 
@@ -25,6 +34,7 @@ var actions = {
       site = req.url.slice(1)
       if (archive.isUrlInList(site)) { //If the site is already archived
         var path = archive.paths.archivedSites+req.url;
+        console.log(path);
         serveFile(req, res, path);
       }
     }
@@ -38,12 +48,23 @@ var actions = {
     });
 
     req.on('end', function(){
-      console.log(body.slice(4));
+      //Parse the POST request for just the website name
+      url = body.slice(4);
+      path = archive.paths.archivedSites+'/'+url;
+      if (archive.isUrlInList(url)) {
+        serveFile(req, res, path);
+      } else {
+        archive.addUrlToList(url);
+        path = archive.paths.siteAssets+'/loading.html';
+        console.log("path in POST parser: "+path);
+        //This part isn't working now
+        serveFile(req, res, path, 302);
+      }
     });
 
-    statusCode = 201;
-    res.writeHead(statusCode, headers);
-    res.end();
+    // statusCode = 201;
+    // res.writeHead(statusCode, headers);
+    // res.end();
   },
 
   'OPTIONS': function(req, res){

@@ -42,7 +42,8 @@ exports.isUrlInList = function(site){
   return result;
 };
 
-exports.addUrlToList = function(){
+exports.addUrlToList = function(url){
+  sitesInList.push(url);
 };
 
 exports.isURLArchived = function(){
