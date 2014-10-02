@@ -13,14 +13,31 @@ exports.handleRequest = function (req, res) {
   var statusCode = 404;
 
   if (req.method === 'GET') {
-    fs.readFile(archive.paths.siteAssets+'/index.html', function(err, file){
-      if (err) {
-        console.log("ERROR! File is: "+file);
-      }
-      statusCode = 200;
-      res.writeHead(statusCode, helpers.headers);
-      res.write(file, 'utf8');
-      res.end();
-    });
+    //If request is coming for index
+    if (req.url === '/index.html' || req.url === '/') {
+      //Serve and send index
+      fs.readFile(archive.paths.siteAssets+'/index.html', function(err, file){
+        if (err) {
+          console.log("ERROR! File is: "+file);
+        }
+        console.log(req.url);
+        statusCode = 200;
+        res.writeHead(statusCode, helpers.headers);
+        res.end(file);
+      });
+    } else { //If req url isn't index
+
+      urlSite = req.url.slice(1)
+      archive.readListOfUrls(urlSite, archive.isUrlInList);
+      // archive.isUrlInList();
+
+      console.log("request url sliced: "+req.url.slice(1));
+
+
+    }
+    
+  } else { //If req method isn't GET
+
   }
+
 };
