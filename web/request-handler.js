@@ -7,6 +7,14 @@ var fs = require('fs');
 
 archive.readListOfUrls();
 
+var serveFile = function(req, res, path) {
+  fs.readFile(path, function(err, data){
+    if (err) {console.log("Error in serveFile")}
+    res.writeHead(200, helpers.headers);
+    res.end(data);
+  });
+}
+
 exports.handleRequest = function (req, res) {
 
   console.log("Serving request type " + req.method + " for url " + req.url);
@@ -14,34 +22,21 @@ exports.handleRequest = function (req, res) {
   var statusCode = 404;
 
   if (req.method === 'GET') {
-    //If request is coming for index
+    
     if (req.url === '/index.html' || req.url === '/') {
-      //Serve and send index
-      fs.readFile(archive.paths.siteAssets+'/index.html', function(err, file){
-        if (err) {
-          console.log("ERROR! File is: "+file);
-        }
-        console.log(req.url);
-        statusCode = 200;
-        res.writeHead(statusCode, helpers.headers);
-        res.end(file);
-      });
-    } else { //If req url isn't index
+      
+      var path = archive.paths.siteAssets+'/index.html'
+      serveFile(req, res, path);
 
-      urlName = req.url.slice(1)
+    } else { //If req.url isn't index
 
-      if (archive.isUrlInList(urlName)) {
-        console.log("archived is true");
-        fs.readFile(archive.paths.archivedSites+req.url, function(err, file){
-          if (err) {
-            console.log("ERROR! File is: "+file);
-          }
-          console.log("Trying to grab the archived file!");
-          console.log(file);
-          statusCode = 200;
-          res.writeHead(statusCode, helpers.headers);
-          res.end(file);
-        });
+      site = req.url.slice(1)
+
+      if (archive.isUrlInList(site)) { //If the site is already archived
+
+        var path = archive.paths.archivedSites+req.url;
+        serveFile(req, res, path);
+
       }
     }
     
